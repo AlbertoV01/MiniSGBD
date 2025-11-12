@@ -389,7 +389,6 @@
             this.Name = "FormPrincipal";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "FormPrincipal";
-            this.Load += new System.EventHandler(this.FormPrincipal_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgv_Resultados)).EndInit();
             this.pnl_Superior.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pb_Minimizar)).EndInit();

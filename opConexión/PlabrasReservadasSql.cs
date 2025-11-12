@@ -1,329 +1,84 @@
-﻿using System;
+﻿using opConexión;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using opConexión;
 using System.Data.Sql;
 using System.Data.SqlClient;
+using System.Drawing;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace opConexión
 {
     public static class PlabrasReservadasSql
     {
-        // DML (Data Manipulation Lenguage)
-        public static void Select(RichTextBox rtb_Consulta)
+        //WinAPI para evitar repintado mientras actualizamos
+        private const int WM_SETREDRAW = 0x000B;
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        // Patrón: palabras reservadas (añade las que quieras). \b asegura "whole words".
+        private static readonly string pattern = @"\b(select|from|insert|update|delete|create|alter|drop|truncate|database|where|join|on|group|by|order)\b|\*";
+
+        public static void Resaltar(RichTextBox rtb)
         {
-            var sel_start = rtb_Consulta.SelectionStart;
-            var sel_len = rtb_Consulta.SelectionLength;
+            if (rtb == null) return;
 
-            rtb_Consulta.SelectAll();
-            rtb_Consulta.SelectionColor = Color.LightGray;
-            
+            if (string.IsNullOrEmpty(rtb.Text)) return;
 
-            int p = 0;
-            while ((p = rtb_Consulta.Find("select", p, RichTextBoxFinds.None)) >= 0)
+            int selStart = rtb.SelectionStart;
+            int selLength = rtb.SelectionLength;
+            bool oldHideSelection = rtb.HideSelection;
+
+            try
             {
-                rtb_Consulta.SelectionStart = p;
-                rtb_Consulta.SelectionLength = 6;
-                rtb_Consulta.SelectionColor = Color.Orange;
-                rtb_Consulta.SelectionFont = new Font(rtb_Consulta.Font,FontStyle.Bold);
+                // Evitar que se muestre la selección mientras procesamos
+                rtb.HideSelection = true;
 
-                p += 1;
+                // evita congelamiento y parpadeo
+                SendMessage(rtb.Handle, WM_SETREDRAW, IntPtr.Zero, IntPtr.Zero);
+
+                // Restaurar formato base
+                rtb.SelectAll();
+                rtb.SelectionColor = Color.LightGray;
+                rtb.SelectionFont = new Font(rtb.Font, FontStyle.Regular);
+
+                var matches = Regex.Matches(rtb.Text, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+                foreach (Match m in matches)
+                {
+                    if (!m.Success) continue;
+
+                    rtb.Select(m.Index, m.Length);
+
+                    // si es asterisco lo ponemos azul, si es palabra reservada naranja
+                    if (m.Value == "*")
+                    {
+                        rtb.SelectionColor = Color.Blue;
+                        rtb.SelectionFont = new Font(rtb.Font, FontStyle.Bold);
+                    }
+                    else
+                    {
+                        rtb.SelectionColor = Color.Orange;
+                        rtb.SelectionFont = new Font(rtb.Font, FontStyle.Bold);
+                    }
+                }
             }
-
-
-            rtb_Consulta.SelectionStart = sel_start;
-            rtb_Consulta.SelectionLength = sel_len;
-
-            rtb_Consulta.Invalidate();
-        }
-
-        public static void From(RichTextBox rtb_Consulta)
-        {
-            var sel_start = rtb_Consulta.SelectionStart;
-            var sel_len = rtb_Consulta.SelectionLength;
-      
-            int p = 0;
-            while ((p = rtb_Consulta.Find("from", p, RichTextBoxFinds.None)) >= 0)
+            finally
             {
-                rtb_Consulta.SelectionStart = p;
-                rtb_Consulta.SelectionLength = 4;
-                rtb_Consulta.SelectionColor = Color.Orange;
-                rtb_Consulta.SelectionFont = new Font(rtb_Consulta.Font, FontStyle.Bold);
+                rtb.SelectionStart = selStart;
+                rtb.SelectionLength = selLength;
+                rtb.HideSelection = oldHideSelection;
 
-
-                p += 1;
+                SendMessage(rtb.Handle, WM_SETREDRAW, new IntPtr(1), IntPtr.Zero);
+                rtb.Invalidate();
             }
-
-            rtb_Consulta.SelectionStart = sel_start;
-            rtb_Consulta.SelectionLength = sel_len;
-
-            rtb_Consulta.Invalidate();
-
         }
-
-        public static void Insert(RichTextBox rtb_Consulta)
-        {
-            var sel_start = rtb_Consulta.SelectionStart;
-            var sel_len = rtb_Consulta.SelectionLength;
-
-            int p = 0;
-            while ((p = rtb_Consulta.Find("insert", p, RichTextBoxFinds.None)) >= 0)
-            {
-                rtb_Consulta.SelectionStart = p;
-                rtb_Consulta.SelectionLength = 5;
-                rtb_Consulta.SelectionColor = Color.Orange;
-                rtb_Consulta.SelectionFont = new Font(rtb_Consulta.Font, FontStyle.Bold);
-
-
-                p += 1;
-            }
-
-            rtb_Consulta.SelectionStart = sel_start;
-            rtb_Consulta.SelectionLength = sel_len;
-
-            rtb_Consulta.Invalidate();
-
-        }
-
-        public static void Update(RichTextBox rtb_Consulta)
-        {
-            var sel_start = rtb_Consulta.SelectionStart;
-            var sel_len = rtb_Consulta.SelectionLength;
-
-            int p = 0;
-            while ((p = rtb_Consulta.Find("update", p, RichTextBoxFinds.None)) >= 0)
-            {
-                rtb_Consulta.SelectionStart = p;
-                rtb_Consulta.SelectionLength = 6;
-                rtb_Consulta.SelectionColor = Color.Orange;
-                rtb_Consulta.SelectionFont = new Font(rtb_Consulta.Font, FontStyle.Bold);
-
-
-                p += 1;
-            }
-
-            rtb_Consulta.SelectionStart = sel_start;
-            rtb_Consulta.SelectionLength = sel_len;
-
-            rtb_Consulta.Invalidate();
-        }
-
-        public static void Delete(RichTextBox rtb_Consulta)
-        {
-            var sel_start = rtb_Consulta.SelectionStart;
-            var sel_len = rtb_Consulta.SelectionLength;
-
-            int p = 0;
-            while ((p = rtb_Consulta.Find("delete", p, RichTextBoxFinds.None)) >= 0)
-            {
-                rtb_Consulta.SelectionStart = p;
-                rtb_Consulta.SelectionLength = 6;
-                rtb_Consulta.SelectionColor = Color.Orange;
-                rtb_Consulta.SelectionFont = new Font(rtb_Consulta.Font, FontStyle.Bold);
-
-
-                p += 1;
-            }
-
-            rtb_Consulta.SelectionStart = sel_start;
-            rtb_Consulta.SelectionLength = sel_len;
-
-            rtb_Consulta.Invalidate();
-
-        }
-
-        public static void Asterisco(RichTextBox rtb_Consulta)
-        {
-            var sel_start = rtb_Consulta.SelectionStart;
-            var sel_len = rtb_Consulta.SelectionLength;
-
-            int p = 0;
-            while ((p = rtb_Consulta.Find("*", p, RichTextBoxFinds.None)) >= 0)
-            {
-                rtb_Consulta.SelectionStart = p;
-                rtb_Consulta.SelectionLength = 1;
-                rtb_Consulta.SelectionColor = Color.Blue;
-                rtb_Consulta.SelectionFont = new Font(rtb_Consulta.Font, FontStyle.Bold);
-
-
-                p += 1;
-            }
-
-            rtb_Consulta.SelectionStart = sel_start;
-            rtb_Consulta.SelectionLength = sel_len;
-
-            rtb_Consulta.Invalidate();
-        }
-
-        public static void Database(RichTextBox rtb_Consulta)
-        {
-            var sel_start = rtb_Consulta.SelectionStart;
-            var sel_len = rtb_Consulta.SelectionLength;
-
-            int p = 0;
-            while ((p = rtb_Consulta.Find("database", p, RichTextBoxFinds.None)) >= 0)
-            {
-                rtb_Consulta.SelectionStart = p;
-                rtb_Consulta.SelectionLength = 8;
-                rtb_Consulta.SelectionColor = Color.Orange;
-                rtb_Consulta.SelectionFont = new Font(rtb_Consulta.Font, FontStyle.Bold);
-
-
-                p += 1;
-            }
-
-            rtb_Consulta.SelectionStart = sel_start;
-            rtb_Consulta.SelectionLength = sel_len;
-
-            rtb_Consulta.Invalidate();
-        }
-
-        //DDL (Data Definition Lenguaje)
-
-        public static void Create(RichTextBox rtb_Consulta)
-        {
-            var sel_start = rtb_Consulta.SelectionStart;
-            var sel_len = rtb_Consulta.SelectionLength;
-
-            int p = 0;
-            while ((p = rtb_Consulta.Find("create", p, RichTextBoxFinds.None)) >= 0)
-            {
-                rtb_Consulta.SelectionStart = p;
-                rtb_Consulta.SelectionLength =6;
-                rtb_Consulta.SelectionColor = Color.Orange;
-                rtb_Consulta.SelectionFont = new Font(rtb_Consulta.Font, FontStyle.Bold);
-
-                p += 1;
-            }
-
-            rtb_Consulta.SelectionStart = sel_start;
-            rtb_Consulta.SelectionLength = sel_len;
-
-            rtb_Consulta.Invalidate();
-        }
-
-        public static void Alter(RichTextBox rtb_Consulta)
-        {
-            var sel_start = rtb_Consulta.SelectionStart;
-            var sel_len = rtb_Consulta.SelectionLength;
-
-            int p = 0;
-            while ((p = rtb_Consulta.Find("alter", p, RichTextBoxFinds.None)) >= 0)
-            {
-                rtb_Consulta.SelectionStart = p;
-                rtb_Consulta.SelectionLength = 5;
-                rtb_Consulta.SelectionColor = Color.Orange;
-                rtb_Consulta.SelectionFont = new Font(rtb_Consulta.Font, FontStyle.Bold);
-
-                p += 1;
-            }
-
-            rtb_Consulta.SelectionStart = sel_start;
-            rtb_Consulta.SelectionLength = sel_len;
-
-            rtb_Consulta.Invalidate();
-        }
-        public static void Drop(RichTextBox rtb_Consulta)
-        {
-            var sel_start = rtb_Consulta.SelectionStart;
-            var sel_len = rtb_Consulta.SelectionLength;
-
-            int p = 0;
-            while ((p = rtb_Consulta.Find("drop", p, RichTextBoxFinds.None)) >= 0)
-            {
-                rtb_Consulta.SelectionStart = p;
-                rtb_Consulta.SelectionLength = 4;
-                rtb_Consulta.SelectionColor = Color.Orange;
-                rtb_Consulta.SelectionFont = new Font(rtb_Consulta.Font, FontStyle.Bold);
-
-
-                p += 1;
-            }
-
-            rtb_Consulta.SelectionStart = sel_start;
-            rtb_Consulta.SelectionLength = sel_len;
-
-            rtb_Consulta.Invalidate();
-        }
-
-        public static void Truncate(RichTextBox rtb_Consulta)
-        {
-            var sel_start = rtb_Consulta.SelectionStart;
-            var sel_len = rtb_Consulta.SelectionLength;
-
-            int p = 0;
-            while ((p = rtb_Consulta.Find("truncate", p, RichTextBoxFinds.None)) >= 0)
-            {
-                rtb_Consulta.SelectionStart = p;
-                rtb_Consulta.SelectionLength = 8;
-                rtb_Consulta.SelectionColor = Color.Orange;
-                rtb_Consulta.SelectionFont = new Font(rtb_Consulta.Font, FontStyle.Bold);
-
-
-                p += 1;
-            }
-
-            rtb_Consulta.SelectionStart = sel_start;
-            rtb_Consulta.SelectionLength = sel_len;
-
-            rtb_Consulta.Invalidate();
-        }
-        public static void Comment(RichTextBox rtb_Consulta)
-        {
-            var sel_start = rtb_Consulta.SelectionStart;
-            var sel_len = rtb_Consulta.SelectionLength;
-
-            int p = 0;
-            while ((p = rtb_Consulta.Find("coment", p, RichTextBoxFinds.None)) >= 0)
-            {
-                rtb_Consulta.SelectionStart = p;
-                rtb_Consulta.SelectionLength = 6;
-                rtb_Consulta.SelectionColor = Color.Orange;
-                rtb_Consulta.SelectionFont = new Font(rtb_Consulta.Font, FontStyle.Bold);
-
-
-                p += 1;
-            }
-
-            rtb_Consulta.SelectionStart = sel_start;
-            rtb_Consulta.SelectionLength = sel_len;
-
-            rtb_Consulta.Invalidate();
-        }
-
-        public static void Rename(RichTextBox rtb_Consulta)
-        {
-            var sel_start = rtb_Consulta.SelectionStart;
-            var sel_len = rtb_Consulta.SelectionLength;
-
-            int p = 0;
-            while ((p = rtb_Consulta.Find("rename", p, RichTextBoxFinds.None)) >= 0)
-            {
-                rtb_Consulta.SelectionStart = p;
-                rtb_Consulta.SelectionLength = 6;
-                rtb_Consulta.SelectionColor = Color.Orange;
-                rtb_Consulta.SelectionFont = new Font(rtb_Consulta.Font, FontStyle.Bold);
-
-
-                p += 1;
-            }
-
-            rtb_Consulta.SelectionStart = sel_start;
-            rtb_Consulta.SelectionLength = sel_len;
-
-            rtb_Consulta.Invalidate();
-
-        }
-
-
-
-
 
     }
 }

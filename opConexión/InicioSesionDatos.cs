@@ -1,112 +1,70 @@
-﻿using System;
+﻿using opConexión;
+using opConexión.GestorMotores;
+using opConexión.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using opConexión;
 using System.Data.Sql;
 using System.Data.SqlClient;
+using System.Diagnostics.Contracts;
+using System.Drawing;
 using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 namespace opConexión
 {
     public static class InicioSesionDatos
     {
-        public static string servidor { get; set; }
-        public static string usuario { get ; set; }
-        public static string contra { get;set; }
+        public static string Servidor { get; set; }
+        public static string Usuario { get; set; }
+        public static string Contra { get; set; }
+        public static string Motor { get; set; } 
 
-        
-        static int numVeces = 0;
         public static void CargarTreeView(TreeView tv_MenuBD)
         {
-
-
-            if (numVeces == 0)
+            try
             {
-                numVeces++;
-                TreeNode NodoPadre = new TreeNode();
-                NodoPadre.Name = servidor;
-                NodoPadre.Text = servidor;
-                tv_MenuBD.Nodes.Add(NodoPadre);
-                DataTable BDD = OpTreeView.ConsultarBDD(servidor, usuario, contra);
-                foreach (DataRow FilaBDD in BDD.Rows)
+                string mensaje;
+                IMotorBdd motor = ManejadorDeConexion.ObtenerMotor(Motor);
+
+                // Evita duplicar servidores
+                TreeNode nodoServidor = tv_MenuBD.Nodes[Servidor] ?? new TreeNode(Servidor) { Name = Servidor };
+                if (tv_MenuBD.Nodes[Servidor] == null)
+                    tv_MenuBD.Nodes.Add(nodoServidor);
+                // Bases de datos
+                DataTable bases = motor.ObtenerBases(Servidor, Usuario, Contra, out mensaje);
+                foreach (DataRow db in bases.Rows)
                 {
-                    TreeNode NodoFilasBDD = new TreeNode();
-                    NodoFilasBDD.Name = FilaBDD[0].ToString();
-                    NodoFilasBDD.Text = FilaBDD[0].ToString();
-                    tv_MenuBD.Nodes[NodoPadre.Name].Nodes.Add(NodoFilasBDD);
-                    DataTable TablasBDD = OpTreeView.ObtenerTablas(servidor, usuario, contra, NodoFilasBDD.Name);
-                    //  string x = NodoTablasBDD.Name.Remove(0, NodoTablasBDD.Name.IndexOf('.'));
-
-                    foreach (DataRow FilaTablasBDD in TablasBDD.Rows)
+                    string nombreBDD = db[0].ToString();
+                    if (!nodoServidor.Nodes.ContainsKey(nombreBDD))
                     {
-                        TreeNode NodoTablasBDD = new TreeNode();
-                        NodoTablasBDD.Name = FilaTablasBDD[0].ToString();
-                        NodoTablasBDD.Text = FilaTablasBDD[0].ToString();
-                        tv_MenuBD.Nodes[NodoPadre.Name].Nodes[NodoFilasBDD.Name].Nodes.Add(NodoTablasBDD);
-                        DataTable CamposBDD = OpTreeView.ObtenerCampos(servidor, usuario, contra, NodoFilasBDD.Name, NodoTablasBDD.Name);
+                        TreeNode nodoBDD = new TreeNode(nombreBDD) { Name = nombreBDD };
+                        nodoServidor.Nodes.Add(nodoBDD);
 
-                        foreach (DataRow FilaCampos in CamposBDD.Rows)
+                        DataTable tablas = motor.ObtenerTablas(Servidor, Usuario, Contra, nombreBDD, out mensaje);
+                        foreach (DataRow tabla in tablas.Rows)
                         {
-                            TreeNode NodoCamposTablas = new TreeNode();
-                            string TipoDeDato = FilaCampos[1].ToString();
-                            string Longitud = FilaCampos[2].ToString();
-                            NodoCamposTablas.Name = FilaCampos[0].ToString();
-                            NodoCamposTablas.Text = FilaCampos[0].ToString() + $" ({TipoDeDato})  " + $" ({Longitud})";
-                            tv_MenuBD.Nodes[NodoPadre.Name].Nodes[NodoFilasBDD.Name].Nodes[NodoTablasBDD.Name].Nodes.Add(NodoCamposTablas);
+                            TreeNode nodoTabla = new TreeNode(tabla[0].ToString()) { Name = tabla[0].ToString() };
+                            nodoBDD.Nodes.Add(nodoTabla);
 
+                            DataTable campos = motor.ObtenerCampos(Servidor, Usuario, Contra, nombreBDD, nodoTabla.Name, out mensaje);
+                            foreach (DataRow campo in campos.Rows)
+                            {
+                                nodoTabla.Nodes.Add($"{campo[0]} ({campo[1]}) ({campo[2]})");
+                            }
                         }
                     }
-
                 }
-
-
             }
-            else
-            {
-                TreeNode NodoPadre = new TreeNode();
-                NodoPadre.Name = servidor;
-                NodoPadre.Text = servidor;
-                tv_MenuBD.Nodes.Add(NodoPadre);
-                DataTable BDD = OpTreeView.ConsultarBDD(servidor, usuario, contra);
-                foreach (DataRow FilaBDD in BDD.Rows)
-                {
-                    TreeNode NodoFilasBDD = new TreeNode();
-                    NodoFilasBDD.Name = FilaBDD[0].ToString();
-                    NodoFilasBDD.Text = FilaBDD[0].ToString();
-                    tv_MenuBD.Nodes[NodoPadre.Name].Nodes.Add(NodoFilasBDD);
-                    DataTable TablasBDD = OpTreeView.ObtenerTablas(servidor, usuario, contra, NodoFilasBDD.Name);
-                    
-
-                    foreach (DataRow FilaTablasBDD in TablasBDD.Rows)
-                    {
-                        TreeNode NodoTablasBDD = new TreeNode();
-                        NodoTablasBDD.Name = FilaTablasBDD[0].ToString();
-                        NodoTablasBDD.Text = FilaTablasBDD[0].ToString();
-                        tv_MenuBD.Nodes[NodoPadre.Name].Nodes[NodoFilasBDD.Name].Nodes.Add(NodoTablasBDD);
-                        DataTable CamposBDD = OpTreeView.ObtenerCampos(servidor, usuario, contra, NodoFilasBDD.Name, NodoTablasBDD.Name);
-
-                        foreach (DataRow FilaCampos in CamposBDD.Rows)
-                        {
-                            TreeNode NodoCamposTablas = new TreeNode();
-                            string TipoDeDato = FilaCampos[1].ToString();
-                            string Longitud = FilaCampos[2].ToString();
-                            NodoCamposTablas.Name = FilaCampos[0].ToString();
-                            NodoCamposTablas.Text = FilaCampos[0].ToString() + $" ({TipoDeDato})  " + $" ({Longitud})";
-                            tv_MenuBD.Nodes[NodoPadre.Name].Nodes[NodoFilasBDD.Name].Nodes[NodoTablasBDD.Name].Nodes.Add(NodoCamposTablas);
-
-                        }
-                    }
-
-                }
-
+            catch (Exception ex) { 
+                MessageBox.Show(ex.Message);
+                
             }
-
         }
-
     }
 }

@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using opConexión;
 using Microsoft.SqlServer.Management.Smo;
+using opConexión.GestorMotores;
+using opConexión.MotoresBdd;
 
 namespace MiniSGBD
 {
@@ -20,40 +22,27 @@ namespace MiniSGBD
         public string sContra = string.Empty;
         public TreeView tv_MenuBd = new TreeView();
         public Boolean Entradas = false;
-        List<FormPrincipal> lista = new List<FormPrincipal>();
-
         public FormLogin( int nVeces)
         {
             InitializeComponent();
             iVeces = nVeces;
         }
-        
-
-
-
         private void tb_Usuario_Enter(object sender, EventArgs e)
         {
-
             if (tb_Usuario.Text == "USUARIO")
             {
                 tb_Usuario.Text = "";
                 tb_Usuario.ForeColor = Color.White;
-                
             }
-
-          
         }
-
         private void tb_Usuario_Leave(object sender, EventArgs e)
         {
             if (tb_Usuario.Text == "")
             {
                 tb_Usuario.Text = "USUARIO";
-                tb_Usuario.ForeColor = Color.LightGray;
-              
+                tb_Usuario.ForeColor = Color.LightGray;   
             }
         }
-
         private void tb_Contraseña_Enter(object sender, EventArgs e)
         {
             if(tb_Contraseña.Text=="CONTRASEÑA")
@@ -63,7 +52,6 @@ namespace MiniSGBD
                 tb_Contraseña.ForeColor=Color.White;
             }
         }
-
         private void tb_Contraseña_Leave(object sender, EventArgs e)
         {
             if(tb_Contraseña.Text=="")
@@ -74,7 +62,6 @@ namespace MiniSGBD
                 tb_Contraseña.ForeColor = Color.LightGray;
             }
         }
-
         private void pb_Cerrar_Click(object sender, EventArgs e)
         {
             comboBox1.Text = "";
@@ -87,91 +74,48 @@ namespace MiniSGBD
                 tb_Contraseña.Text = "CONTRASEÑA";
                 tb_Contraseña.ForeColor = Color.LightGray;
             }
-
-
             this.FindForm().Close();
         }
-
         private void tb_Contraseña_KeyUp(object sender, KeyEventArgs e)
         {
-
             if (e.KeyCode == Keys.Enter)
             {
-                if (opConexion.Conexion(comboBox1.Text, tb_Usuario.Text, tb_Contraseña.Text))
-                {
-                    sInstancia = comboBox1.Text;
-                    FormPrincipal formPrincipal = new FormPrincipal();
-                    if (iVeces == 0)
-                    {
-                        this.Hide();
-                        formPrincipal.ShowDialog();
-                        this.Close();
-                    }
-                    else
-                    {
-                        this.Close();
-                    }
-                }
-                else
-                {
-
-                    MessageBox.Show("Contraseña incorrecta");
-                }
+                InicioSesionDatos.Servidor = comboBox1.Text;
+                InicioSesionDatos.Usuario = tb_Usuario.Text;
+                InicioSesionDatos.Contra = tb_Contraseña.Text;
+                InicioSesionDatos.Motor = cb_MotorBdd.Text;
+                this.Close();
             }
         }
         private void btn_Conectar_Click(object sender, EventArgs e)
         {
-            Entradas = true;
-            
-            if (opConexion.Conexion(comboBox1.Text, tb_Usuario.Text, tb_Contraseña.Text))
+            if(MotorSqlServer.ProbarConexion(comboBox1.Text,tb_Usuario.Text, tb_Contraseña.Text))
             {
-                
-
-                //if (iVeces == 0)
-                //{
-                    
-                //    this.Hide();
-                //    this.Close();
-                    opConexión.InicioSesionDatos.servidor= comboBox1.Text;
-                    opConexión.InicioSesionDatos.usuario = tb_Usuario.Text;
-                    opConexión.InicioSesionDatos.contra = tb_Contraseña.Text;
-                    this.Close();
-                    comboBox1.Text = "";
-                //iVeces++;
-                //}
-                //else
-                //{
-                //    opConexión.InicioSesionDatos.servidor = comboBox1.Text;
-                //    opConexión.InicioSesionDatos.usuario = tb_Usuario.Text;
-                //    opConexión.InicioSesionDatos.contra = tb_Contraseña.Text;
-                //    this.Hide();
-                //    this.Close();
-                //}
-
+                // Guardar datos de conexión para usar en el formulario principal
+                InicioSesionDatos.Servidor = comboBox1.Text;
+                InicioSesionDatos.Usuario = tb_Usuario.Text;
+                InicioSesionDatos.Contra = tb_Contraseña.Text;
+                InicioSesionDatos.Motor = cb_MotorBdd.Text;
+                // Limpieza de campos
                 tb_Usuario.Text = "USUARIO";
                 tb_Usuario.ForeColor = Color.LightGray;
+                tb_Contraseña.UseSystemPasswordChar = false;
+                tb_Contraseña.Text = "CONTRASEÑA";
+                tb_Contraseña.ForeColor = Color.LightGray;
 
-                if (tb_Contraseña.Text != "CONTRASEÑA")
-                {
-                    tb_Contraseña.UseSystemPasswordChar = false;
-                    tb_Contraseña.Text = "CONTRASEÑA";
-                    tb_Contraseña.ForeColor = Color.LightGray;
-                }
-
+                comboBox1.Text = "";
             }
             else
             {
-                MessageBox.Show("Contraseña incorrecta");
+                MessageBox.Show("Ha sucedido un error en la conexión");
+                return;
             }
-
-
+            this.Close();
         }
-
         private void FormLogin_Load(object sender, EventArgs e)
         {
             panel1.BringToFront();
         }
-
         private void tb_Contraseña_TextChanged(object sender, EventArgs e)
         {
             
