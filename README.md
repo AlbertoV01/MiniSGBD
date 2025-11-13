@@ -1,10 +1,7 @@
-# MiniSGBD
+# Mini Sistema Gestor de Base de datos
 
-Mini Sistema Gestor de Base de Datos
-![image](images/img1.png)
-![image](images/img2.png)
-![image](images/img3.png)
-![image](images/img4.png)
+Gestor de base de datos que permite realizar operaciones básicas
+
 
 
 
