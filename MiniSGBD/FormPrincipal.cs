@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 namespace MiniSGBD
@@ -81,13 +82,18 @@ namespace MiniSGBD
 
         private void btn_Conect_Click(object sender, EventArgs e)
         {
-           formLogin.ShowDialog();
-           InicioSesionDatos.CargarTreeView(tv_MenuBD);
 
-            btn_Actualizar.Enabled = true;
-            btn_Disconnect.Enabled = true;
+            formLogin.ShowDialog();
+            if (MotorSqlServer.ProbarConexion(InicioSesionDatos.Servidor, InicioSesionDatos.Usuario, InicioSesionDatos.Contra, "master"))
+            {
 
-            formLogin.sInstancia = instancia;
+                InicioSesionDatos.CargarTreeView(tv_MenuBD);
+
+                btn_Actualizar.Enabled = true;
+                btn_Disconnect.Enabled = true;
+
+                formLogin.sInstancia = instancia;
+            }
         }
 
         private void btn_Disconnect_Click(object sender, EventArgs e)
@@ -106,7 +112,13 @@ namespace MiniSGBD
             {
                 // Eliminar el nodo raíz (servidor)
                 tv_MenuBD.Nodes.Remove(nodoSeleccionado);
+
+                cb_BasesdeDatos.DataSource = null;
+                cb_BasesdeDatos.Items.Clear(); 
+                cb_BasesdeDatos.Text = "";     
+
                 MessageBox.Show($"Servidor '{nodoSeleccionado.Text}' desconectado correctamente.", "Desconectado", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
             }
             else
             {

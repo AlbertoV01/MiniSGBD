@@ -13,9 +13,9 @@ namespace opConexión.GestorMotores
        
         private static readonly Dictionary<string, IMotorBdd> Motores = new Dictionary<string, IMotorBdd>()
         {
-            { "SQL Server", new MotorSqlServer() }
+            { "SQL Server", new MotorSqlServer() },
+            { "MySql", new MotorMySql() }
         };
-
 
         public static IMotorBdd ObtenerMotor(string nombreMotor)
         {

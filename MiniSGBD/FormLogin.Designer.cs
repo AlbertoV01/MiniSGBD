@@ -187,6 +187,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cb_MotorBdd.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(53)))), ((int)(((byte)(50)))), ((int)(((byte)(49)))));
+            this.cb_MotorBdd.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cb_MotorBdd.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.cb_MotorBdd.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(168)))), ((int)(((byte)(164)))), ((int)(((byte)(164)))));
             this.cb_MotorBdd.FormattingEnabled = true;
@@ -217,6 +218,7 @@
             this.Opacity = 0.9D;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "INICIO DE SESIÓN";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FormLogin_FormClosed);
             this.Load += new System.EventHandler(this.FormLogin_Load);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();

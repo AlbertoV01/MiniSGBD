@@ -37,7 +37,7 @@ namespace opConexión
                 if (tv_MenuBD.Nodes[Servidor] == null)
                     tv_MenuBD.Nodes.Add(nodoServidor);
                 // Bases de datos
-                DataTable bases = motor.ObtenerBases(Servidor, Usuario, Contra, out mensaje);
+                DataTable bases = motor.ObtenerBases(Servidor, Usuario, Contra, out  mensaje);
                 foreach (DataRow db in bases.Rows)
                 {
                     string nombreBDD = db[0].ToString();
@@ -66,5 +66,6 @@ namespace opConexión
                 
             }
         }
+
     }
 }

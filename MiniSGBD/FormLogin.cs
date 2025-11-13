@@ -22,6 +22,8 @@ namespace MiniSGBD
         public string sContra = string.Empty;
         public TreeView tv_MenuBd = new TreeView();
         public Boolean Entradas = false;
+       readonly MotorSqlServer motorSql = new MotorSqlServer();
+       readonly MotorMySql  motorMysql = new MotorMySql();
         public FormLogin( int nVeces)
         {
             InitializeComponent();
@@ -89,6 +91,9 @@ namespace MiniSGBD
         }
         private void btn_Conectar_Click(object sender, EventArgs e)
         {
+            if(motorSql.Motor==cb_MotorBdd.Text)
+            {
+
             if(MotorSqlServer.ProbarConexion(comboBox1.Text,tb_Usuario.Text, tb_Contraseña.Text))
             {
                 // Guardar datos de conexión para usar en el formulario principal
@@ -110,6 +115,33 @@ namespace MiniSGBD
                 MessageBox.Show("Ha sucedido un error en la conexión");
                 return;
             }
+            }
+            if(motorMysql.Motor==cb_MotorBdd.Text)
+            {
+                if (MotorMySql.ProbarConexion(comboBox1.Text, tb_Usuario.Text, tb_Contraseña.Text))
+                {
+                    // Guardar datos de conexión para usar en el formulario principal
+                    InicioSesionDatos.Servidor = comboBox1.Text;
+                    InicioSesionDatos.Usuario = tb_Usuario.Text;
+                    InicioSesionDatos.Contra = tb_Contraseña.Text;
+                    InicioSesionDatos.Motor = cb_MotorBdd.Text;
+                    // Limpieza de campos
+                    tb_Usuario.Text = "USUARIO";
+                    tb_Usuario.ForeColor = Color.LightGray;
+                    tb_Contraseña.UseSystemPasswordChar = false;
+                    tb_Contraseña.Text = "CONTRASEÑA";
+                    tb_Contraseña.ForeColor = Color.LightGray;
+
+                    comboBox1.Text = "";
+                }
+                else
+                {
+                    MessageBox.Show("Ha sucedido un error en la conexión");
+                    return;
+                }
+
+
+            }
             this.Close();
         }
         private void FormLogin_Load(object sender, EventArgs e)
@@ -119,6 +151,11 @@ namespace MiniSGBD
         private void tb_Contraseña_TextChanged(object sender, EventArgs e)
         {
             
+        }
+
+        private void FormLogin_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            return;
         }
     }
 }

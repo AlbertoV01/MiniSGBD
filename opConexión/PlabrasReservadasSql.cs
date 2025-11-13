@@ -22,7 +22,7 @@ namespace opConexión
         [DllImport("user32.dll")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
-        // Patrón: palabras reservadas (añade las que quieras). \b asegura "whole words".
+        // palabras reservadas
         private static readonly string pattern = @"\b(select|from|insert|update|delete|create|alter|drop|truncate|database|where|join|on|group|by|order)\b|\*";
 
         public static void Resaltar(RichTextBox rtb)
